@@ -1,32 +1,41 @@
 # Rapport de stage
 
-<!-- TODO: À propos -->
+## À propos
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Le but du projet est de fournir une page web permettant de générer un
+rapport de stage de manière interactive. Vous pouvez utiliser le résultat sur
+[https://epfl-fsd.github.io/rapport-de-stage/](https://epfl-fsd.github.io/rapport-de-stage/).
 
-## Getting Started
+Les documents officiels du canton se trouvent sur
+[vd.ch/formation/orientation/faire-des-stages](https://www.vd.ch/formation/orientation/faire-des-stages).
 
-First, install the dependencies:
+Ce projet est l'initiative de l'équipe [ISAS-FSD] de l'EPFL, et a été 
+principalement développé par [Azecko]. Pour toute question ou remarque, merci de
+remplir une [issue].
+
+## Pour améliorer "rapport-de-stage" / contribuer
+
+Après avoir cloné le repo, installer les dépendances nécessaires au bon
+fonctionnement du projet :
 ```bash
 pnpm install
 ```
 
-Then, run the development server:
+Pour lancer la version de dévelopement :
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000/rapport-de-stage](http://localhost:3000/rapport-de-stage) with your browser to see the result.
+On peut ensuite se rendre sur
+[http://localhost:3000/rapport-de-stage](http://localhost:3000/rapport-de-stage)
+pour voir les résultats. Le mode développement met à jour la page
+automatiquement. Un bon point de départ est de commencer par modifier le fichier
+`app/page.tsx`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Pour aller plus loin, consulter la [documentation de
+Next.js](https://nextjs.org/docs).
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-### Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+[ISAS-FSD]: https://go.epfl.ch/isas-fsd
+[Azecko]: https://github.com/azecko
+[issue]: https://github.com/epfl-fsd/rapport-de-stage/issues
