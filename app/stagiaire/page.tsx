@@ -121,10 +121,10 @@ export default function Page() {
             <div className="progress-internship-div flex max-[930px]:w-fit min-[930px]:max-w-4xl flex-col min-[931px]:flex-row min-[930px]:justify-between mt-5">
                 <div className="flex flex-col">
                     <div className="flex gap-3 ml-auto mb-1">
-                        <Image src="/smiling_face.png" className="smileys-image mr-0.5" alt="Smiling face emoji" height={20} width={20}/>
-                        <Image src="/slightly_smiling_face.png" className="smileys-image mr-0.5" alt="Slightly smiling face emoji" height={20} width={20}/>
-                        <Image src="/sad_face.png" className="smileys-image mr-0.5" alt="Sad face emoji" height={20} width={20}/>
-                        <Image src="/really_sad_face.png" className="smileys-image -mr-1" alt="Really sad face emoji" height={20} width={20}/>
+                        <Image src="smiling_face.png" className="smileys-image mr-0.5" alt="Smiling face emoji" height={20} width={20}/>
+                        <Image src="slightly_smiling_face.png" className="smileys-image mr-0.5" alt="Slightly smiling face emoji" height={20} width={20}/>
+                        <Image src="sad_face.png" className="smileys-image mr-0.5" alt="Sad face emoji" height={20} width={20}/>
+                        <Image src="really_sad_face.png" className="smileys-image -mr-1" alt="Really sad face emoji" height={20} width={20}/>
                     </div>
                     <div className="w-full">
                         <div className="label-radios-div flex gap-5">
@@ -149,10 +149,10 @@ export default function Page() {
                 </div>
                 <div className="flex flex-col">
                     <div className="smileys-images-div flex gap-3 ml-auto mb-1 max-[930px]:hidden">
-                        <Image src="/smiling_face.png" className="smileys-image mr-0.5" alt="Smiling face emoji" height={20} width={20}/>
-                        <Image src="/slightly_smiling_face.png" className="smileys-image mr-0.5" alt="Slightly smiling face emoji" height={20} width={20}/>
-                        <Image src="/sad_face.png" className="smileys-image mr-0.5" alt="Sad face emoji" height={20} width={20}/>
-                        <Image src="/really_sad_face.png" className="smileys-image -mr-1" alt="Really sad face emoji" height={20} width={20}/>
+                        <Image src="smiling_face.png" className="smileys-image mr-0.5" alt="Smiling face emoji" height={20} width={20}/>
+                        <Image src="slightly_smiling_face.png" className="smileys-image mr-0.5" alt="Slightly smiling face emoji" height={20} width={20}/>
+                        <Image src="sad_face.png" className="smileys-image mr-0.5" alt="Sad face emoji" height={20} width={20}/>
+                        <Image src="really_sad_face.png" className="smileys-image -mr-1" alt="Really sad face emoji" height={20} width={20}/>
                     </div>
                     <div className="w-full">
                         <div className="label-radios-div flex gap-5">
@@ -177,10 +177,10 @@ export default function Page() {
                 </div>
                 <div className="flex flex-col">
                     <div className="smileys-images-div flex gap-3 ml-auto mb-1 max-[930px]:hidden">
-                        <Image src="/smiling_face.png" className="smileys-image mr-0.5" alt="Smiling face emoji" height={20} width={20}/>
-                        <Image src="/slightly_smiling_face.png" className="smileys-image mr-0.5" alt="Slightly smiling face emoji" height={20} width={20}/>
-                        <Image src="/sad_face.png" className="smileys-image mr-0.5" alt="Sad face emoji" height={20} width={20}/>
-                        <Image src="/really_sad_face.png" className="smileys-image -mr-1" alt="Really sad face emoji" height={20} width={20}/>
+                        <Image src="smiling_face.png" className="smileys-image mr-0.5" alt="Smiling face emoji" height={20} width={20}/>
+                        <Image src="slightly_smiling_face.png" className="smileys-image mr-0.5" alt="Slightly smiling face emoji" height={20} width={20}/>
+                        <Image src="sad_face.png" className="smileys-image mr-0.5" alt="Sad face emoji" height={20} width={20}/>
+                        <Image src="really_sad_face.png" className="smileys-image -mr-1" alt="Really sad face emoji" height={20} width={20}/>
                     </div>
                     <div className="w-full">
                         <div className="label-radios-div flex gap-5">
