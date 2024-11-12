@@ -1,4 +1,8 @@
 @media print {
+    #tools-div  {
+        display: none;
+    }
+
     #main-description {
         margin-top: 10px;
     }

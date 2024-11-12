@@ -62,7 +62,7 @@ export default function Page() {
     };
     return (
         <div className="mx-4 my-4 md:mx-14 md:my-14">
-            <div className="mb-4 flex gap-4">
+            <div id="tools-div" className="mb-4 flex gap-4">
                 <input
                     style={{ display: "none" }}
                     accept=".json"
