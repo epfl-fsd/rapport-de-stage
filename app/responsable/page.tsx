@@ -58,7 +58,7 @@ export default function Page() {
     }
 
     function exportJSON() {
-        download(`rappStage_test.json`, JSON.stringify(rapportStorage, null, 4))
+        download(`rapportStage_${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}.json`, JSON.stringify(rapportStorage, null, 4))
     };
     return (
         <div className="mx-4 my-4 md:mx-14 md:my-14">
