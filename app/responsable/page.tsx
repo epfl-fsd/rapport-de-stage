@@ -4,7 +4,14 @@ import EtatDeVaudSignature from "../components/EtatDeVaudSignature";
 
 export default function Page() {
     const inputFile = React.useRef<HTMLInputElement | null>(null);
-    var rapportStorage = JSON.parse(localStorage.getItem('rapport-de-stage') || '{}')
+    const [rapportStorage, setRapportStorage] = React.useState({});
+    
+    React.useEffect(() => {
+        const storedData = localStorage.getItem('rapport-de-stage');
+        if (storedData) {
+            setRapportStorage(JSON.parse(storedData));
+        }
+    }, []);
 
     const handleFileUpload = e => {
         const confirm = window.confirm('Voulez-vous vraiment importer les données de ce fichier ?')
