@@ -94,6 +94,24 @@ export default function Page() {
                 >
                     Exporter (JSON)
                 </button>
+                <button
+                    onClick={() => {
+                        const date = new Date()
+                        document.title=`rapportStage_${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}_${date.toISOString().split('T')[0]}`
+                        window.print()
+                    }}
+                    className="
+                        bg-gray-500
+                        p-2
+                        rounded-lg
+                        text-white
+                        hover:bg-gray-600
+                        transition
+                        ease-in-out
+                    "
+                >
+                    Imprimer
+                </button>
             </div>
             {/* TITLES & DESCRIPTION */}
             <h1 className="text-4xl text-[#e42313]">RAPPORT DE STAGE</h1>
