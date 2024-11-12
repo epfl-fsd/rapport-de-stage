@@ -25,6 +25,7 @@ export default function Page() {
                       const fileContent = event.target.result;
                       const jsonData = JSON.parse(fileContent);
                       localStorage.setItem('rapport-de-stage', JSON.stringify(jsonData))
+                      location.reload()
                       
                   } catch (error) {
                       alert("Erreur de lecture du fichier JSON. Vérifiez que le fichier est bien formaté.");
