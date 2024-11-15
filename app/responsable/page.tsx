@@ -855,7 +855,7 @@ export default function Page() {
                                 </div>
                                 <div className="dotted-input-text flex flex-row gap-2">
                                     <label htmlFor="signature">Signature</label>
-                                    <input name="signature" defaultValue={rapportStorage.signature} onChange={(e) => updateStorageOnChange('signature', e.target.value)} id="Signature" className="w-2/3" type="text" placeholder={".".repeat(500)} />
+                                    <input name="signature" defaultValue={rapportStorage.signature} onChange={(e) => updateStorageOnChange('signature', e.target.value)} id="Signature" className="w-auto" type="text" placeholder={".".repeat(500)} />
                                 </div>
                             </div>
                         </div>
