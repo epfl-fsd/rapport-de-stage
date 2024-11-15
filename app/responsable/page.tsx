@@ -108,8 +108,8 @@ export default function Page() {
                     </button>
                     <button
                         onClick={() => {
-                            const date = new Date()
-                            document.title=`rapportStage_${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}_${date.toISOString().split('T')[0]}`
+                            const date = new Date().toLocaleString('fr-FR', { month: 'long', year: 'numeric' }).replace(' ', '_')
+                            document.title=`${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}_Rapport_de_stage_EPFL_responsables_${date}`
                             window.print()
                         }}
                         className="
