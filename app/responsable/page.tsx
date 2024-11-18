@@ -2,18 +2,40 @@
 import React from "react";
 import EtatDeVaudSignature from "../components/EtatDeVaudSignature";
 import { reportStorageInterface } from "@/interfaces/reportStorageInterface";
+import SignaturePad from "signature_pad";
 
 export default function Page() {
     const inputFile = React.useRef<HTMLInputElement | null>(null);
     const [rapportStorage, setRapportStorage] = React.useState<reportStorageInterface>({})
     const [isDataLoaded, setIsDataLoaded] = React.useState(false)
+    const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+    const signaturePadRef = React.useRef<SignaturePad | null>(null);
+    const signatureImageFile = React.useRef<HTMLInputElement | null>(null);
     
     React.useEffect(() => {
         const storedData = localStorage.getItem('rapport-de-stage');
+        const storedDataObject = JSON.parse(storedData || '{}');
         if (storedData) {
             setRapportStorage(JSON.parse(storedData));
         }
         setIsDataLoaded(true);
+
+        const timer = setTimeout(() => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+        
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            signaturePadRef.current = new SignaturePad(canvas, {penColor: "#1e22aa"});
+            signaturePadRef.current.addEventListener("endStroke", () => {
+                updateStorageOnChange('signature', signaturePadRef.current?.toDataURL() || '')
+            });
+            if(storedDataObject.signature) {
+                signaturePadRef.current.fromDataURL(storedDataObject.signature);
+            }
+        }, 100);
+        
+          return () => clearTimeout(timer);
     }, []);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,9 +71,39 @@ export default function Page() {
         }
     };
 
+    const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const confirm = window.confirm('Voulez-vous vraiment importer cette signature ?')
+        if(confirm) {
+            const { files } = e.target;
+            if (files && files.length) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                  try {
+                        if(typeof(reader.result) == 'string') {
+                            signaturePadRef.current?.fromDataURL(reader.result)
+                            updateStorageOnChange('signature', reader.result)
+                        }
+                  } catch (error) {
+                      alert("Erreur de lecture de l'image.");
+                  }
+              };
+              reader.onerror = () => {
+                  alert("Erreur lors de la lecture du fichier.");
+              };
+              reader.readAsDataURL(files[0]);
+            }
+        }
+    };
+
     function updateStorageOnChange(element:string, elementValue:string) {
-        rapportStorage[element as keyof reportStorageInterface] = elementValue
-        localStorage.setItem('rapport-de-stage', JSON.stringify(rapportStorage))
+        setRapportStorage((prevRapportStorage) => {
+            const updatedRapportStorage = {
+                ...prevRapportStorage,
+                [element]: elementValue,
+            };
+            localStorage.setItem('rapport-de-stage', JSON.stringify(updatedRapportStorage));
+            return updatedRapportStorage;
+        })
     }
 
     function onButtonClick() {
@@ -843,7 +895,7 @@ export default function Page() {
                                     <input name="take-time" value="yes" defaultChecked={rapportStorage.bilanStage == 'yes'} onChange={(e) => updateStorageOnChange('bilanStage', e.target.value)} id="take-time-yes" className="radio-input" type="radio" />
                                     <label htmlFor="take-time-yes">Oui</label>
                                 </div>
-                                <div className="dotted-input-text flex flex-row gap-2">
+                                <div className="date-div dotted-input-text flex flex-row gap-2">
                                     <label htmlFor="date">Date</label>
                                     <input name="date" defaultValue={rapportStorage.fillUpDate} onChange={(e) => updateStorageOnChange('fillUpDate', e.target.value)} id="date" className="w-2/3" type="text" placeholder={".".repeat(500)} />
                                 </div>
@@ -855,7 +907,28 @@ export default function Page() {
                                 </div>
                                 <div className="dotted-input-text flex flex-row gap-2">
                                     <label htmlFor="signature">Signature</label>
-                                    <input name="signature" defaultValue={rapportStorage.signature} onChange={(e) => updateStorageOnChange('signature', e.target.value)} id="Signature" className="w-auto" type="text" placeholder={".".repeat(500)} />
+                                    <div>
+                                        <canvas className="border-2 mb-2" id="signature-pad" width="250" height="70" ref={canvasRef}></canvas>
+                                        <button
+                                            onClick={() => signaturePadRef.current?.clear()}
+                                            className="signature-buttons bg-red-500 p-2 rounded-lg text-white hover:bg-red-600 transition ease-in-out mr-4"
+                                        >
+                                            Réinitialiser
+                                        </button>
+                                        <button
+                                            onClick={() => signatureImageFile.current?.click()}
+                                            className="signature-buttons bg-red-500 p-2 rounded-lg text-white hover:bg-red-600 transition ease-in-out"
+                                        >
+                                            Importer image
+                                        </button>
+                                        <input
+                                            style={{ display: "none" }}
+                                            accept=".png, .jpg, .jpeg"
+                                            ref={signatureImageFile}
+                                            onChange={handleSignatureUpload}
+                                            type="file"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
