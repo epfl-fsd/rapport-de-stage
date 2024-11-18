@@ -3,6 +3,7 @@ import React from "react";
 import EtatDeVaudSignature from "../components/EtatDeVaudSignature";
 import { reportStorageInterface } from "@/interfaces/reportStorageInterface";
 import SignaturePad from "signature_pad";
+import * as packageJson from "../../package.json";
 
 export default function Page() {
     const inputFile = React.useRef<HTMLInputElement | null>(null);
@@ -940,7 +941,19 @@ export default function Page() {
                         </p>
                     </div>
                 </div>
-                <EtatDeVaudSignature />
+                <div className="flex justify-between">
+                    <EtatDeVaudSignature />
+                    <div className="version-promotion hidden mt-4 text-sm">
+                        Généré via&nbsp;
+                        <a 
+                            href="https://go.epfl.ch/rds"
+                            className="text-blue-600 hover:underline"
+                        >
+                            https://go.epfl.ch/rds
+                        </a>,
+                        v{packageJson.version}
+                    </div>
+                </div>
             </div>
         )
     )
