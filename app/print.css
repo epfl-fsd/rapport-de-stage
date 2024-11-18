@@ -165,4 +165,9 @@
     .signature-buttons {
         display: none;
     }
+
+    /* Version & promotion */
+    .version-promotion {
+        display: block;
+    }
 }
