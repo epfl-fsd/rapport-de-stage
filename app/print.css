@@ -64,7 +64,7 @@
     /* Etat de vaud "signature" component */
     .etat-de-vaud-div {
         display: flex;
-        margin-top: 20px;
+        margin-top: 10px;
         margin-bottom: 30px;
     }
 
@@ -149,5 +149,21 @@
 
     .less-margin-conclusion {
         margin-top: 33px;
+    }
+    /* Date */
+    .date-div {
+        min-width: 100px;
+    }
+    /* Signature */
+    #signature-pad {
+        border: none;
+        margin: 0;
+        width: 200px;
+        height: 60px;
+        position: relative;
+        top: -30px; 
+    }
+    .signature-buttons {
+        display: none;
     }
 }
