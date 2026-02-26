@@ -38,7 +38,11 @@ export default function Page() {
         
           return () => clearTimeout(timer);
     }, []);
-
+    // Sets up a cross-window communication listener to handle automatic
+    // report import when the page is opened via the Grist widget.
+    // Listens for a postMessage event of type "import-rapport",
+    // persists the received JSON payload into localStorage,
+    // then forces a reload to initialize the application state from storage.
     React.useEffect(() => {
         if (sessionStorage.getItem("importDone")) return;
         function receiveMessage(e: MessageEvent) {
@@ -79,6 +83,7 @@ export default function Page() {
             return '';
         }
     }
+    // genrate pdf from current page with /rapport-de-stage/api/generatePdf route and send the pdf (in dataURL) to the opener (grist) and close the page
     const sendPDFtoGrist = async () => {
         const response = await fetch(`/rapport-de-stage/api/generatePdf`, {
             method: "POST",
