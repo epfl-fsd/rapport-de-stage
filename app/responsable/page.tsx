@@ -66,6 +66,19 @@ export default function Page() {
 
         return () => window.removeEventListener('message', receiveMessage);
     }, []);
+    async function loadFileAsDataURL(file: any) {
+        try {
+            const blob = await file.blob();
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        } catch (error) {
+            console.error('Erreur lors du chargement de l\'image:', error);
+            return '';
+        }
+    }
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const confirm = window.confirm('Voulez-vous vraiment importer les données de ce fichier ?')
         if(confirm) {
