@@ -39,6 +39,33 @@ export default function Page() {
           return () => clearTimeout(timer);
     }, []);
 
+    React.useEffect(() => {
+        if (sessionStorage.getItem("importDone")) return;
+        function receiveMessage(e: MessageEvent) {
+            if (!e.data || e.data.type !== 'import-rapport') return;
+            try {
+                const json = e.data.payload.json;
+                if (typeof json === 'object') {
+                    localStorage.setItem('rapport-de-stage', JSON.stringify(json));
+                    sessionStorage.setItem("importDone", "true");
+                    window.location.reload();
+                } else {
+                    console.warn('Payload import-rapport non JSON :', json);
+                }
+            } catch (err) {
+                console.error('Erreur import-rapport: ', err);
+            }
+        }
+        window.addEventListener('message', receiveMessage);
+        try {
+            if (window.opener && !window.opener.closed) {
+            window.opener.postMessage({ type: 'ready' }, '*');
+            }
+        } catch (err) {
+        }
+
+        return () => window.removeEventListener('message', receiveMessage);
+    }, []);
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const confirm = window.confirm('Voulez-vous vraiment importer les données de ce fichier ?')
         if(confirm) {
