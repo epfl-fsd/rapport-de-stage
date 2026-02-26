@@ -79,6 +79,26 @@ export default function Page() {
             return '';
         }
     }
+    const sendPDFtoGrist = async () => {
+        const response = await fetch(`/rapport-de-stage/api/generatePdf`, {
+            method: "POST",
+            body: JSON.stringify({
+            dashboardData: JSON.parse(localStorage.getItem("rapport-de-stage")!)
+        })
+        });
+        const dataUrlPdf = await loadFileAsDataURL(response);
+        const body = {
+            pdfRapportInDataUrlBase64: dataUrlPdf
+        }
+        try {
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'sendPdf', payload: body}, '*');
+                window.close();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const confirm = window.confirm('Voulez-vous vraiment importer les données de ce fichier ?')
         if(confirm) {
@@ -217,6 +237,24 @@ export default function Page() {
                     >
                         Imprimer
                     </button>
+                    {window.opener && !window.opener.closed && (
+                        <button
+                            onClick={() => {
+                                sendPDFtoGrist();
+                            }}
+                            className="
+                                bg-green-500
+                                p-2
+                                rounded-lg
+                                text-white
+                                hover:bg-green-600
+                                transition
+                                ease-in-out
+                            "
+                        >
+                            Envoyer PDF sur grist et fermer la page
+                        </button>
+                    )}
                 </div>
                 {/* TITLES & DESCRIPTION */}
                 <h1 className="text-4xl text-[#e42313]">RAPPORT DE STAGE</h1>
