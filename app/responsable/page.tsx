@@ -44,9 +44,8 @@ export default function Page() {
     // persists the received JSON payload into localStorage,
     // then forces a reload to initialize the application state from storage.
     React.useEffect(() => {
-        if (sessionStorage.getItem("importDone")) return;
         function receiveMessage(e: MessageEvent) {
-            if (!e.data || e.data.type !== 'import-rapport') return;
+            if (!e.data || e.data.type !== 'import-rapport') return;
             try {
                 const json = e.data.payload.json;
                 if (typeof json === 'object') {
@@ -61,13 +60,14 @@ export default function Page() {
             }
         }
         window.addEventListener('message', receiveMessage);
-        try {
-            if (window.opener && !window.opener.closed) {
-            window.opener.postMessage({ type: 'ready' }, '*');
+        if (!sessionStorage.getItem("importDone")) {
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({ type: 'ready' }, '*');
+                }
+            } catch (err) {
             }
-        } catch (err) {
         }
-
         return () => window.removeEventListener('message', receiveMessage);
     }, []);
     async function loadFileAsDataURL(file: any) {
