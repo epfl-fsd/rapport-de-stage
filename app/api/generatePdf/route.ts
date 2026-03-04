@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     waitUntil: "networkidle0",
     });
     await page.emulateMediaType("print");
-    const pdf: any = await page.pdf({ format: "A4", printBackground: true, scale: 0.94, }); // Parameter of size, format and other
+    const pdf: any = await page.pdf({ format: "A4", printBackground: true, scale: 0.98, }); // Parameter of size, format and other
     await browser.close();
     return new Response(pdf, {
         headers: {
