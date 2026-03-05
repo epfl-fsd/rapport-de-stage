@@ -12,7 +12,7 @@ export default function Page() {
     const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
     const signaturePadRef = React.useRef<SignaturePad | null>(null);
     const signatureImageFile = React.useRef<HTMLInputElement | null>(null);
-    
+
     React.useEffect(() => {
         const storedData = localStorage.getItem('rapport-de-stage');
         const storedDataObject = JSON.parse(storedData || '{}');
@@ -24,79 +24,145 @@ export default function Page() {
         const timer = setTimeout(() => {
             const canvas = canvasRef.current;
             if (!canvas) return;
-        
+
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
-            signaturePadRef.current = new SignaturePad(canvas, {penColor: "#1e22aa"});
+            signaturePadRef.current = new SignaturePad(canvas, { penColor: "#1e22aa" });
             signaturePadRef.current.addEventListener("endStroke", () => {
                 updateStorageOnChange('signature', signaturePadRef.current?.toDataURL() || '')
             });
-            if(storedDataObject.signature) {
+            if (storedDataObject.signature) {
                 signaturePadRef.current.fromDataURL(storedDataObject.signature);
             }
         }, 100);
-        
-          return () => clearTimeout(timer);
-    }, []);
 
+        return () => clearTimeout(timer);
+    }, []);
+    // Sets up a cross-window communication listener to handle automatic
+    // report import when the page is opened via the Grist widget.
+    // Listens for a postMessage event of type "import-rapport",
+    // persists the received JSON payload into localStorage,
+    // then forces a reload to initialize the application state from storage.
+    React.useEffect(() => {
+        function receiveMessage(e: MessageEvent) {
+            if (!e.data || e.data.type !== 'import-rapport') return;
+            try {
+                const json = e.data.payload.json;
+                if (typeof json === 'object') {
+                    localStorage.setItem('rapport-de-stage', JSON.stringify(json));
+                    sessionStorage.setItem("importDone", "true");
+                    window.location.reload();
+                } else {
+                    console.warn('Payload import-rapport non JSON :', json);
+                }
+            } catch (err) {
+                console.error('Erreur import-rapport: ', err);
+            }
+        }
+        window.addEventListener('message', receiveMessage);
+        if (!sessionStorage.getItem("importDone")) {
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.postMessage({ type: 'ready' }, '*');
+                }
+            } catch (err) {
+            }
+        }
+        return () => window.removeEventListener('message', receiveMessage);
+    }, []);
+    async function loadFileAsDataURL(file: any) {
+        try {
+            const blob = await file.blob();
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        } catch (error) {
+            console.error('Erreur lors du chargement de l\'image:', error);
+            return '';
+        }
+    }
+    // genrate pdf from current page with /rapport-de-stage/api/generatePdf route and send the pdf (in dataURL) to the opener (grist) and close the page
+    const sendPDFtoGrist = async () => {
+        const response = await fetch(`/rapport-de-stage/api/generatePdf`, {
+            method: "POST",
+            body: JSON.stringify({
+                dashboardData: JSON.parse(localStorage.getItem("rapport-de-stage")!)
+            })
+        });
+        const dataUrlPdf = await loadFileAsDataURL(response);
+        const body = {
+            pdfRapportInDataUrlBase64: dataUrlPdf
+        }
+        try {
+            if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'sendPdf', payload: body }, '*');
+                sessionStorage.setItem("importDone", "false");
+                window.close();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const confirm = window.confirm('Voulez-vous vraiment importer les données de ce fichier ?')
-        if(confirm) {
+        if (confirm) {
             const { files } = e.target;
             if (files && files.length) {
-              const filename = files[0].name;
-        
-              var parts = filename.split(".");
-              const fileType = parts[parts.length - 1];
-              if(fileType != "json") {
-                return alert("Merci d'importer un fichier JSON valide !")
-              }
+                const filename = files[0].name;
 
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                  try {
-                      const fileContent = event.target?.result as string;
-                      const jsonData = JSON.parse(fileContent);
-                      localStorage.setItem('rapport-de-stage', JSON.stringify(jsonData))
-                      location.reload()
-                      
-                  } catch (error) {
-                      alert("Erreur de lecture du fichier JSON. Vérifiez que le fichier est bien formaté.");
-                  }
-              };
-              reader.onerror = () => {
-                  alert("Erreur lors de la lecture du fichier.");
-              };
-              reader.readAsText(files[0]);
+                var parts = filename.split(".");
+                const fileType = parts[parts.length - 1];
+                if (fileType != "json") {
+                    return alert("Merci d'importer un fichier JSON valide !")
+                }
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const fileContent = event.target?.result as string;
+                        const jsonData = JSON.parse(fileContent);
+                        localStorage.setItem('rapport-de-stage', JSON.stringify(jsonData))
+                        location.reload()
+
+                    } catch (error) {
+                        alert("Erreur de lecture du fichier JSON. Vérifiez que le fichier est bien formaté.");
+                    }
+                };
+                reader.onerror = () => {
+                    alert("Erreur lors de la lecture du fichier.");
+                };
+                reader.readAsText(files[0]);
             }
         }
     };
 
     const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const confirm = window.confirm('Voulez-vous vraiment importer cette signature ?')
-        if(confirm) {
+        if (confirm) {
             const { files } = e.target;
             if (files && files.length) {
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                  try {
-                        if(typeof(reader.result) == 'string') {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        if (typeof (reader.result) == 'string') {
                             signaturePadRef.current?.fromDataURL(reader.result)
                             updateStorageOnChange('signature', reader.result)
                         }
-                  } catch (error) {
-                      alert("Erreur de lecture de l'image.");
-                  }
-              };
-              reader.onerror = () => {
-                  alert("Erreur lors de la lecture du fichier.");
-              };
-              reader.readAsDataURL(files[0]);
+                    } catch (error) {
+                        alert("Erreur de lecture de l'image.");
+                    }
+                };
+                reader.onerror = () => {
+                    alert("Erreur lors de la lecture du fichier.");
+                };
+                reader.readAsDataURL(files[0]);
             }
         }
     };
 
-    function updateStorageOnChange(element:string, elementValue:string) {
+    function updateStorageOnChange(element: string, elementValue: string | string[] | number) {
         setRapportStorage((prevRapportStorage) => {
             const updatedRapportStorage = {
                 ...prevRapportStorage,
@@ -111,7 +177,7 @@ export default function Page() {
         inputFile.current?.click();
     };
 
-    function download(filename:any, text:any) {
+    function download(filename: any, text: any) {
         const element = document.createElement('a')
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
         element.setAttribute('download', filename)
@@ -124,6 +190,24 @@ export default function Page() {
     function exportJSON() {
         download(`rapportStage_${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}.json`, JSON.stringify(rapportStorage, null, 4))
     };
+
+    const handleTextChange = (value: string, fieldName: keyof reportStorageInterface) => {
+        if (!rapportStorage[fieldName]) {
+            updateStorageOnChange(fieldName, [value]);
+            const selectedKey = `${fieldName}Selected`
+            updateStorageOnChange(selectedKey, 0);
+            return;
+        };
+
+        const selectedKey = `${fieldName}Selected` as keyof reportStorageInterface;
+        const index = (rapportStorage[selectedKey] as number) ?? 0;
+
+        const newArray = [...(rapportStorage[fieldName] as string[])];
+        newArray[index] = value;
+
+        updateStorageOnChange(fieldName, newArray);
+    };
+
     return (
         isDataLoaded && (
             <div className="mx-4 my-4 md:mx-14 md:my-14">
@@ -162,7 +246,7 @@ export default function Page() {
                     <button
                         onClick={() => {
                             const date = new Date().toLocaleString('fr-FR', { month: 'long', year: 'numeric' }).replace(' ', '_')
-                            document.title=`${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}_Rapport_de_stage_EPFL_responsables_${date}`
+                            document.title = `${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}_Rapport_de_stage_EPFL_responsables_${date}`
                             window.print()
                         }}
                         className="
@@ -177,6 +261,24 @@ export default function Page() {
                     >
                         Imprimer
                     </button>
+                    {window.opener && !window.opener.closed && (
+                        <button
+                            onClick={() => {
+                                sendPDFtoGrist();
+                            }}
+                            className="
+                                bg-green-500
+                                p-2
+                                rounded-lg
+                                text-white
+                                hover:bg-green-600
+                                transition
+                                ease-in-out
+                            "
+                        >
+                            Envoyer PDF sur grist et fermer la page
+                        </button>
+                    )}
                 </div>
                 {/* TITLES & DESCRIPTION */}
                 <h1 className="text-4xl text-[#e42313]">RAPPORT DE STAGE</h1>
@@ -189,7 +291,7 @@ export default function Page() {
                 {/* "ENTREPRISE" SECTION */}
                 <div className="dotted-box mt-4 border-[3px] border-dotted border-[#e42313] px-6 py-3 max-w-4xl">
                     <h2 className="text-3xl text-[#e42313]">ENTREPRISE</h2>
-                    <div className="flex flex-col md:flex-row md:gap-5">                    
+                    <div className="flex flex-col md:flex-row md:gap-5">
                         <div className="dotted-input-under-title mt-5 flex flex-col gap-3 md:w-1/2">
                             <div className="dotted-input-text flex whitespace-nowrap">
                                 Nom de l&apos;entreprise&nbsp;
@@ -229,7 +331,7 @@ export default function Page() {
                 {/* "STAGIAIRE" SECTION */}
                 <div className="dotted-box mt-6 border-[3px] border-dotted border-[#e42313] px-6 py-3 max-w-4xl">
                     <h2 className="text-3xl text-[#e42313]">STAGIAIRE</h2>
-                    <div className="flex flex-col md:flex-row md:gap-5">                    
+                    <div className="flex flex-col md:flex-row md:gap-5">
                         <div className="dotted-input-under-title mt-5 flex flex-col gap-3 md:w-1/2">
                             <div className="dotted-input-text flex whitespace-nowrap">
                                 Nom&nbsp;
@@ -334,7 +436,7 @@ export default function Page() {
                                 </div>
                                 <div className="flex flex-[1_1_45%] md:flex-none gap-2">
                                     <label className="block md:hidden" htmlFor="ponctuality-to-upgrade">À améliorer</label>
-                                    <input name="ponctuality"value="to-upgrade" defaultChecked={rapportStorage.ponctuality == 'to-upgrade'} onChange={(e) => updateStorageOnChange('ponctuality', e.target.value)} id="ponctuality-to-upgrade" className="radio-input md:mr-[87px]" type="radio" />
+                                    <input name="ponctuality" value="to-upgrade" defaultChecked={rapportStorage.ponctuality == 'to-upgrade'} onChange={(e) => updateStorageOnChange('ponctuality', e.target.value)} id="ponctuality-to-upgrade" className="radio-input md:mr-[87px]" type="radio" />
                                 </div>
                                 <div className="flex flex-[1_1_45%] md:flex-none gap-2">
                                     <label className="block md:hidden" htmlFor="ponctuality-not-observed">Pas observé</label>
@@ -474,10 +576,26 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex flex-col md:flex-row whitespace-nowrap w-full">
                             Remarques / Observations&nbsp;
-                            <textarea className="w-full box-border resize-none overflow-y-hidden" defaultValue={rapportStorage.attitudeRemarks} onChange={(e) => updateStorageOnChange('attitudeRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                            <textarea
+                                className="w-full box-border resize-none overflow-y-hidden"
+                                value={rapportStorage.attitudeRemarks?.[rapportStorage.attitudeRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "attitudeRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.attitudeRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("attitudeRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.attitudeRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.attitudeRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 {/* "EXÉCUTION DES TÂCHES" SECTION */}
                 <h2 className="section-title mt-8 text-3xl text-[#e42313]">EXÉCUTION DES TÂCHES</h2>
                 <div className="radios-section max-w-2xl">
@@ -641,10 +759,26 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex flex-col md:flex-row whitespace-nowrap w-full">
                             Remarques / Observations&nbsp;
-                            <textarea className="w-full box-border resize-none overflow-y-hidden" defaultValue={rapportStorage.tasksExecRemarks} onChange={(e) => updateStorageOnChange('tasksExecRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                            <textarea
+                                className="w-full box-border resize-none overflow-y-hidden"
+                                value={rapportStorage.tasksExecRemarks?.[rapportStorage.tasksExecRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "tasksExecRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.tasksExecRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("tasksExecRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.tasksExecRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.tasksExecRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 <EtatDeVaudSignature />
                 {/* "CONTACT AVEC AUTRUI" SECTION */}
                 <h2 className="contact-with-other section-title mt-8 text-3xl text-[#e42313]">CONTACT AVEC AUTRUI</h2>
@@ -809,10 +943,26 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex flex-col md:flex-row whitespace-nowrap w-full">
                             Remarques / Observations&nbsp;
-                            <textarea className="w-full box-border resize-none overflow-y-hidden" defaultValue={rapportStorage.contactRemarks} onChange={(e) => updateStorageOnChange('contactRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                            <textarea
+                                className="w-full box-border resize-none overflow-y-hidden"
+                                value={rapportStorage.contactRemarks?.[rapportStorage.contactRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "contactRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.contactRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("contactRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.contactRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.contactRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 {/* "AVIS DE LA PERSONNE RESPONSABLE DU STAGE" SECTION */}
                 <h2 className="section-title mt-8 text-3xl text-[#e42313]">AVIS DE LA PERSONNE RESPONSABLE DU STAGE</h2>
                 <div className="text-semibold mt-4">
@@ -836,10 +986,27 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex whitespace-nowrap w-full">
                             Remarques&nbsp;
-                            <input type="text" className="w-full box-border" defaultValue={rapportStorage.opinionRemarks} onChange={(e) => updateStorageOnChange('opinionRemarks', e.target.value)} placeholder={".".repeat(500)}></input>
+                            <input
+                                type="text"
+                                className="w-full box-border"
+                                value={rapportStorage.opinionRemarks?.[rapportStorage.opinionRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "opinionRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.opinionRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("opinionRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.opinionRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.opinionRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 <div className="less-margin-top text-semibold mt-12 max-w-4xl">
                     <p className="mb-4">Que conseillez-vous à ce ou à cette stagiaire par rapport à son projet ?</p>
                     <div>
@@ -864,8 +1031,23 @@ export default function Page() {
                 </div>
                 <div className="less-margin-top text-semibold mt-12 max-w-4xl">
                     <p className="mb-4">Dans le cas où ce ou cette stagiaire envisage une formation dans ce métier, quels conseils particuliers lui donneriez-vous ?</p>
-                    <textarea className="observations-remarks resize-none w-full" defaultValue={rapportStorage.advicesRemarks} onChange={(e) => updateStorageOnChange('advicesRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                    <textarea className="observations-remarks resize-none w-full"
+                        value={rapportStorage.advicesRemarks?.[rapportStorage.advicesRemarksSelected ?? 0] || ""}
+                        onChange={(e) => handleTextChange(e.target.value, "advicesRemarks")}
+                        placeholder={".".repeat(500)}
+                    />
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.advicesRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("advicesRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.advicesRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.advicesRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 <div className="less-margin-top text-semibold mt-12 max-w-4xl">
                     <p className="mb-4">Si vous envisagiez d’engager un-e apprenti-e, prendriez-vous ce ou cette stagiaire en formation ?</p>
                     <div>
@@ -884,7 +1066,25 @@ export default function Page() {
                     </div>
                 </div>
                 <div className="text-semibold mt-4 max-w-4xl">
-                    <textarea className="observations-remarks resize-none w-full" rows={2} defaultValue={rapportStorage.considerCandidatesRemarks} onChange={(e) => updateStorageOnChange('considerCandidatesRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                    <textarea
+                        className="observations-remarks resize-none w-full"
+                        rows={2}
+                        value={rapportStorage.considerCandidatesRemarks?.[rapportStorage.considerCandidatesRemarksSelected ?? 0] || ""}
+                        onChange={(e) => handleTextChange(e.target.value, "considerCandidatesRemarks")}
+                        placeholder={".".repeat(500)}
+
+                    />
+                    <select
+                        className="print:hidden mb-2"
+                        value={rapportStorage.considerCandidatesRemarksSelected}
+                        onChange={(e) => updateStorageOnChange("considerCandidatesRemarksSelected", Number(e.target.value))}
+                    >
+                        {rapportStorage.considerCandidatesRemarks?.map((_, i) => (
+                            <option key={i} value={i}>
+                                {rapportStorage.considerCandidatesRemarks?.[i]}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 <div className="take-time flex flex-col lg:flex-row lg:max-w-4xl mt-12 gap-16">
                     <div className="lg:w-3/5">
@@ -945,7 +1145,7 @@ export default function Page() {
                     <EtatDeVaudSignature />
                     <div className="version-promotion hidden mt-4 text-sm">
                         Généré via&nbsp;
-                        <a 
+                        <a
                             href="https://go.epfl.ch/rds"
                             className="text-blue-600 hover:underline"
                         >

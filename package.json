@@ -1,6 +1,6 @@
 {
   "name": "rapport-de-stage",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "next": "14.2.7",
+    "puppeteer": "^24.37.5",
     "react": "^18",
     "react-dom": "^18",
     "signature_pad": "^5.0.4"
