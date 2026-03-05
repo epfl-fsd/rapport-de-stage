@@ -47,7 +47,7 @@ export interface reportStorageInterface {
     contactRemarksSelected?: number
     apprenticeshipJob?: string,
     opinionRemarks?: Array<string>,
-    opinionRemarksSelected: number,
+    opinionRemarksSelected?: number,
     adviceProject?: string,
     advicesRemarks?: Array<string>,
     advicesRemarksSelected?: number,
