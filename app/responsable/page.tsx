@@ -162,7 +162,7 @@ export default function Page() {
         }
     };
 
-    function updateStorageOnChange(element: string, elementValue: string) {
+    function updateStorageOnChange(element: string, elementValue: string | string[] | number) {
         setRapportStorage((prevRapportStorage) => {
             const updatedRapportStorage = {
                 ...prevRapportStorage,
@@ -190,6 +190,24 @@ export default function Page() {
     function exportJSON() {
         download(`rapportStage_${rapportStorage['internFirstName']}_${rapportStorage['internLastName']}.json`, JSON.stringify(rapportStorage, null, 4))
     };
+
+    const handleTextChange = (value: string, fieldName: keyof reportStorageInterface) => {
+        if (!rapportStorage[fieldName]) {
+            updateStorageOnChange(fieldName, [value]);
+            const selectedKey = `${fieldName}Selected`
+            updateStorageOnChange(selectedKey, 0);
+            return;
+        };
+
+        const selectedKey = `${fieldName}Selected` as keyof reportStorageInterface;
+        const index = (rapportStorage[selectedKey] as number) ?? 0;
+
+        const newArray = [...(rapportStorage[fieldName] as string[])];
+        newArray[index] = value;
+
+        updateStorageOnChange(fieldName, newArray);
+    };
+
     return (
         isDataLoaded && (
             <div className="mx-4 my-4 md:mx-14 md:my-14">
@@ -558,10 +576,26 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex flex-col md:flex-row whitespace-nowrap w-full">
                             Remarques / Observations&nbsp;
-                            <textarea className="w-full box-border resize-none overflow-y-hidden" defaultValue={rapportStorage.attitudeRemarks} onChange={(e) => updateStorageOnChange('attitudeRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                            <textarea
+                                className="w-full box-border resize-none overflow-y-hidden"
+                                value={rapportStorage.attitudeRemarks?.[rapportStorage.attitudeRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "attitudeRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.attitudeRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("attitudeRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.attitudeRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.attitudeRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 {/* "EXÉCUTION DES TÂCHES" SECTION */}
                 <h2 className="section-title mt-8 text-3xl text-[#e42313]">EXÉCUTION DES TÂCHES</h2>
                 <div className="radios-section max-w-2xl">
@@ -725,10 +759,26 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex flex-col md:flex-row whitespace-nowrap w-full">
                             Remarques / Observations&nbsp;
-                            <textarea className="w-full box-border resize-none overflow-y-hidden" defaultValue={rapportStorage.tasksExecRemarks} onChange={(e) => updateStorageOnChange('tasksExecRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                            <textarea
+                                className="w-full box-border resize-none overflow-y-hidden"
+                                value={rapportStorage.tasksExecRemarks?.[rapportStorage.tasksExecRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "tasksExecRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.tasksExecRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("tasksExecRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.tasksExecRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.tasksExecRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 <EtatDeVaudSignature />
                 {/* "CONTACT AVEC AUTRUI" SECTION */}
                 <h2 className="contact-with-other section-title mt-8 text-3xl text-[#e42313]">CONTACT AVEC AUTRUI</h2>
@@ -893,10 +943,26 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex flex-col md:flex-row whitespace-nowrap w-full">
                             Remarques / Observations&nbsp;
-                            <textarea className="w-full box-border resize-none overflow-y-hidden" defaultValue={rapportStorage.contactRemarks} onChange={(e) => updateStorageOnChange('contactRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                            <textarea
+                                className="w-full box-border resize-none overflow-y-hidden"
+                                value={rapportStorage.contactRemarks?.[rapportStorage.contactRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "contactRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.contactRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("contactRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.contactRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.contactRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 {/* "AVIS DE LA PERSONNE RESPONSABLE DU STAGE" SECTION */}
                 <h2 className="section-title mt-8 text-3xl text-[#e42313]">AVIS DE LA PERSONNE RESPONSABLE DU STAGE</h2>
                 <div className="text-semibold mt-4">
@@ -920,10 +986,27 @@ export default function Page() {
                     <div className="w-full">
                         <div className="flex whitespace-nowrap w-full">
                             Remarques&nbsp;
-                            <input type="text" className="w-full box-border" defaultValue={rapportStorage.opinionRemarks} onChange={(e) => updateStorageOnChange('opinionRemarks', e.target.value)} placeholder={".".repeat(500)}></input>
+                            <input
+                                type="text"
+                                className="w-full box-border"
+                                value={rapportStorage.opinionRemarks?.[rapportStorage.opinionRemarksSelected ?? 0] || ""}
+                                onChange={(e) => handleTextChange(e.target.value, "opinionRemarks")}
+                                placeholder={".".repeat(500)}
+                            />
                         </div>
                     </div>
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.opinionRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("opinionRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.opinionRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.opinionRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 <div className="less-margin-top text-semibold mt-12 max-w-4xl">
                     <p className="mb-4">Que conseillez-vous à ce ou à cette stagiaire par rapport à son projet ?</p>
                     <div>
@@ -948,8 +1031,23 @@ export default function Page() {
                 </div>
                 <div className="less-margin-top text-semibold mt-12 max-w-4xl">
                     <p className="mb-4">Dans le cas où ce ou cette stagiaire envisage une formation dans ce métier, quels conseils particuliers lui donneriez-vous ?</p>
-                    <textarea className="observations-remarks resize-none w-full" defaultValue={rapportStorage.advicesRemarks} onChange={(e) => updateStorageOnChange('advicesRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                    <textarea className="observations-remarks resize-none w-full"
+                        value={rapportStorage.advicesRemarks?.[rapportStorage.advicesRemarksSelected ?? 0] || ""}
+                        onChange={(e) => handleTextChange(e.target.value, "advicesRemarks")}
+                        placeholder={".".repeat(500)}
+                    />
                 </div>
+                <select
+                    className="print:hidden mb-2"
+                    value={rapportStorage.advicesRemarksSelected}
+                    onChange={(e) => updateStorageOnChange("advicesRemarksSelected", Number(e.target.value))}
+                >
+                    {rapportStorage.advicesRemarks?.map((_, i) => (
+                        <option key={i} value={i}>
+                            {rapportStorage.advicesRemarks?.[i]}
+                        </option>
+                    ))}
+                </select>
                 <div className="less-margin-top text-semibold mt-12 max-w-4xl">
                     <p className="mb-4">Si vous envisagiez d’engager un-e apprenti-e, prendriez-vous ce ou cette stagiaire en formation ?</p>
                     <div>
@@ -968,7 +1066,25 @@ export default function Page() {
                     </div>
                 </div>
                 <div className="text-semibold mt-4 max-w-4xl">
-                    <textarea className="observations-remarks resize-none w-full" rows={2} defaultValue={rapportStorage.considerCandidatesRemarks} onChange={(e) => updateStorageOnChange('considerCandidatesRemarks', e.target.value)} placeholder={".".repeat(500)}></textarea>
+                    <textarea
+                        className="observations-remarks resize-none w-full"
+                        rows={2}
+                        value={rapportStorage.considerCandidatesRemarks?.[rapportStorage.considerCandidatesRemarksSelected ?? 0] || ""}
+                        onChange={(e) => handleTextChange(e.target.value, "considerCandidatesRemarks")}
+                        placeholder={".".repeat(500)}
+
+                    />
+                    <select
+                        className="print:hidden mb-2"
+                        value={rapportStorage.considerCandidatesRemarksSelected}
+                        onChange={(e) => updateStorageOnChange("considerCandidatesRemarksSelected", Number(e.target.value))}
+                    >
+                        {rapportStorage.considerCandidatesRemarks?.map((_, i) => (
+                            <option key={i} value={i}>
+                                {rapportStorage.considerCandidatesRemarks?.[i]}
+                            </option>
+                        ))}
+                    </select>
                 </div>
                 <div className="take-time flex flex-col lg:flex-row lg:max-w-4xl mt-12 gap-16">
                     <div className="lg:w-3/5">
