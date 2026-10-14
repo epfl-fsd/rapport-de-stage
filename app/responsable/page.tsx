@@ -2,6 +2,7 @@
 import React from "react";
 import EtatDeVaudSignature from "../components/EtatDeVaudSignature";
 import { reportStorageInterface } from "@/interfaces/reportStorageInterface";
+import { migrateReportStorage } from "@/lib/migrateReportStorage";
 import SignaturePad from "signature_pad";
 import * as packageJson from "../../package.json";
 
@@ -15,9 +16,11 @@ export default function Page() {
 
     React.useEffect(() => {
         const storedData = localStorage.getItem('rapport-de-stage');
-        const storedDataObject = JSON.parse(storedData || '{}');
+        // migrateReportStorage is used to migrate legacy data format to the new one, so old localStorage entries and old exported JSON files keep working.
+        const storedDataObject = migrateReportStorage(JSON.parse(storedData || '{}'));
         if (storedData) {
-            setRapportStorage(JSON.parse(storedData));
+            localStorage.setItem('rapport-de-stage', JSON.stringify(storedDataObject));
+            setRapportStorage(storedDataObject);
         }
         setIsDataLoaded(true);
 
